@@ -35,6 +35,7 @@ target_link_libraries(vector_add PRIVATE common)
 # Python bindings.
 add_library(llm_kernels STATIC
     src/matmul/matmul_kernels.cu
+    src/softmax/softmax_kernels.cu
 )
 target_link_libraries(llm_kernels PUBLIC common)
 set_target_properties(llm_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -44,3 +45,6 @@ target_compile_options(llm_kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>
 # --- Benchmarks --------------------------------------------------------------
 add_executable(bench_matmul benchmarks/bench_matmul.cu)
 target_link_libraries(bench_matmul PRIVATE llm_kernels CUDA::cublas)
+
+add_executable(bench_softmax benchmarks/bench_softmax.cu)
+target_link_libraries(bench_softmax PRIVATE llm_kernels)

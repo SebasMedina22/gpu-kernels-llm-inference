@@ -116,6 +116,16 @@ inline bool has_flag(int argc, char** argv, const char* name) {
     return false;
 }
 
+// Theoretical DRAM bandwidth in GB/s (2 transfers per clock x bus width).
+// Memory-bound kernels (softmax, LayerNorm) are judged against this ceiling.
+inline double peak_bandwidth_gbs() {
+    int dev = 0, clock_khz = 0, bus_bits = 0;
+    CUDA_CHECK(cudaGetDevice(&dev));
+    CUDA_CHECK(cudaDeviceGetAttribute(&clock_khz, cudaDevAttrMemoryClockRate, dev));
+    CUDA_CHECK(cudaDeviceGetAttribute(&bus_bits, cudaDevAttrGlobalMemoryBusWidth, dev));
+    return 2.0 * clock_khz * 1e3 * (bus_bits / 8.0) / 1e9;
+}
+
 inline std::string device_name() {
     int dev = 0;
     CUDA_CHECK(cudaGetDevice(&dev));
