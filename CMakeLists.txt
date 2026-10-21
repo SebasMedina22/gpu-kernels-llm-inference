@@ -36,6 +36,7 @@ target_link_libraries(vector_add PRIVATE common)
 add_library(llm_kernels STATIC
     src/matmul/matmul_kernels.cu
     src/softmax/softmax_kernels.cu
+    src/layernorm/layernorm_kernels.cu
 )
 target_link_libraries(llm_kernels PUBLIC common)
 set_target_properties(llm_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -48,3 +49,6 @@ target_link_libraries(bench_matmul PRIVATE llm_kernels CUDA::cublas)
 
 add_executable(bench_softmax benchmarks/bench_softmax.cu)
 target_link_libraries(bench_softmax PRIVATE llm_kernels)
+
+add_executable(bench_layernorm benchmarks/bench_layernorm.cu)
+target_link_libraries(bench_layernorm PRIVATE llm_kernels)
