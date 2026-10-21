@@ -15,7 +15,7 @@ against a reference implementation before it is timed.
 - [x] **2. Matrix multiplication**: naive (uncoalesced and coalesced), shared-memory tiled, and register-tiled kernels, verified against a CPU reference and compared with cuBLAS and a NumPy CPU baseline ([kernels](src/matmul/matmul_kernels.cu), [benchmark](benchmarks/bench_matmul.cu))
 - [x] **3. Softmax**: row-wise and numerically stable (handles -inf masks), naive vs. warp-level shuffle reduction vs. warp-level online softmax ([kernels](src/softmax/softmax_kernels.cu), [benchmark](benchmarks/bench_softmax.cu))
 - [x] **4. LayerNorm**: one thread per row vs. one warp per row vs. one block per row with the row cached in shared memory; two-pass (numerically stable) variance ([kernels](src/layernorm/layernorm_kernels.cu), [benchmark](benchmarks/bench_layernorm.cu))
-- [ ] **5. Python bindings**: call the kernels from Python and compare with PyTorch
+- [x] **5. Python bindings**: C API in a shared library, called with `ctypes` on PyTorch CUDA tensors (zero-copy, on PyTorch's current stream); tests against `torch.matmul`, `torch.softmax` and `F.layer_norm` ([bindings](python/llm_kernels.py), [tests](python/test_kernels.py), [benchmark](python/bench_vs_torch.py))
 - [ ] **6. Benchmark suite**: CUDA-event timing over several sizes, results table and plot in `docs/`
 - [ ] **7. Profiling notes**: Nsight Compute analysis of why each optimization helps
 
@@ -61,6 +61,25 @@ cmake --build build --config Release
 
 To target a different GPU, pass its architecture, for example
 `-DCMAKE_CUDA_ARCHITECTURES=75` for a T4.
+
+### Python
+
+The bindings need PyTorch with CUDA (any CUDA version your driver supports;
+the kernels are compiled separately, so it doesn't have to match the toolkit).
+
+```bash
+python -m venv .venv
+.venv/bin/pip install numpy matplotlib torch --index-url https://download.pytorch.org/whl/cu130 \
+    --extra-index-url https://pypi.org/simple   # Windows: .venv\Scripts\pip
+cd python
+python test_kernels.py        # every variant vs. PyTorch
+python bench_vs_torch.py      # timings vs. PyTorch
+```
+
+Why `ctypes` and not a PyTorch C++ extension: an extension must be compiled
+with the same CUDA major version PyTorch was built with, which is fragile on
+Windows. A plain C API only needs device pointers and a stream handle, both
+of which PyTorch exposes (`tensor.data_ptr()`, `torch.cuda.current_stream().cuda_stream`).
 
 ### Running on Google Colab
 

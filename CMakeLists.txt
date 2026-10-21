@@ -43,6 +43,10 @@ set_target_properties(llm_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # Keep source line info so Nsight Compute can map metrics back to the code.
 target_compile_options(llm_kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>)
 
+# Shared library with a C API, loaded from Python via ctypes.
+add_library(llm_kernels_py SHARED src/capi/capi.cu)
+target_link_libraries(llm_kernels_py PRIVATE llm_kernels)
+
 # --- Benchmarks --------------------------------------------------------------
 add_executable(bench_matmul benchmarks/bench_matmul.cu)
 target_link_libraries(bench_matmul PRIVATE llm_kernels CUDA::cublas)
