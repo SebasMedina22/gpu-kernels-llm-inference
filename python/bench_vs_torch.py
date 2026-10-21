@@ -22,6 +22,10 @@ _flush = torch.empty(2 * getattr(_props, "L2_cache_size", 32 * 2**20) // 4, devi
 
 
 def time_ms(fn, warmup: int = 3, iters: int = 20) -> float:
+    # Any idle gap before this (e.g. CPU-side verification) lets a laptop GPU
+    # drop its clocks, and short sparse launches don't bring them back up:
+    # without this, the first case measured after a gap came out ~10x slow.
+    gpu_warmup(0.25)
     for _ in range(warmup):
         fn()
     torch.cuda.synchronize()
@@ -94,9 +98,22 @@ def bench_layernorm(rows_n, hidden_list):
     return rows
 
 
+def gpu_warmup(seconds: float = 2.0) -> None:
+    """Keep the GPU busy so it reaches its boost clocks before anything is timed.
+    An idle laptop GPU downclocks, and short sparse launches don't wake it up."""
+    import time
+    a = torch.randn(2048, 2048, device="cuda")
+    t0 = time.perf_counter()
+    while time.perf_counter() - t0 < seconds:
+        for _ in range(10):
+            a @ a
+        torch.cuda.synchronize()
+
+
 def run(matmul_sizes=(512, 1024, 2048, 4096), softmax_cols=(128, 1024, 4096, 32768),
         ln_hidden=(768, 2048, 4096, 8192), rows_n=4096, csv_path=None):
-    results = bench_matmul(matmul_sizes) + bench_softmax(rows_n, softmax_cols) + bench_layernorm(rows_n, ln_hidden)
+    gpu_warmup()
+    results =bench_matmul(matmul_sizes) + bench_softmax(rows_n, softmax_cols) + bench_layernorm(rows_n, ln_hidden)
     gpu = torch.cuda.get_device_name(0)
     for r in results:
         r["gpu"] = gpu

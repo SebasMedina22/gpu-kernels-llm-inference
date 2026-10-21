@@ -16,12 +16,18 @@ against a reference implementation before it is timed.
 - [x] **3. Softmax**: row-wise and numerically stable (handles -inf masks), naive vs. warp-level shuffle reduction vs. warp-level online softmax ([kernels](src/softmax/softmax_kernels.cu), [benchmark](benchmarks/bench_softmax.cu))
 - [x] **4. LayerNorm**: one thread per row vs. one warp per row vs. one block per row with the row cached in shared memory; two-pass (numerically stable) variance ([kernels](src/layernorm/layernorm_kernels.cu), [benchmark](benchmarks/bench_layernorm.cu))
 - [x] **5. Python bindings**: C API in a shared library, called with `ctypes` on PyTorch CUDA tensors (zero-copy, on PyTorch's current stream); tests against `torch.matmul`, `torch.softmax` and `F.layer_norm` ([bindings](python/llm_kernels.py), [tests](python/test_kernels.py), [benchmark](python/bench_vs_torch.py))
-- [ ] **6. Benchmark suite**: CUDA-event timing over several sizes, results table and plot in `docs/`
+- [ ] **6. Benchmark suite**: CUDA-event timing over several sizes, results table and plot in `docs/`. *Harness done ([run_benchmarks.py](python/run_benchmarks.py)): 3 rounds, cold L2, GPU warm-up, power and clock telemetry. Waiting on a clean full-power run (see Results).*
 - [ ] **7. Profiling notes**: Nsight Compute analysis of why each optimization helps
 
 ## Results
 
-No benchmarks yet. Results will appear here as each milestone is completed.
+No published numbers yet. Every kernel passes its correctness checks, and
+the benchmark suite runs end to end, but the first full runs on this laptop
+were not clean: about 40 seconds into a run, the laptop lowered the GPU's
+power limit from 95 W to 24 W (below its 55 W default), and clocks dropped
+with it. The suite now logs the enforced power limit throughout and marks a
+run invalid if it drops. Results will be published here from a run where it
+stays at full power.
 
 ## Hardware
 

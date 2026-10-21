@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -30,6 +31,17 @@ public:
     ~L2Flusher() { cudaFree(buf_); }
     void flush() { CUDA_CHECK(cudaMemsetAsync(buf_, 0, bytes_)); }
 
+    // Keeps the GPU busy for `ms` of wall time. Laptop GPUs drop their clocks
+    // during idle gaps (e.g. while the CPU verifies a result), and short
+    // sparse kernel launches don't bring them back up before timing ends.
+    void keep_busy(double ms) {
+        const auto t0 = std::chrono::steady_clock::now();
+        while (std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count() < ms) {
+            for (int i = 0; i < 4; ++i) flush();
+            CUDA_CHECK(cudaDeviceSynchronize());
+        }
+    }
+
 private:
     void* buf_ = nullptr;
     size_t bytes_ = 0;
@@ -42,6 +54,7 @@ private:
 template <typename F>
 float time_kernel_ms(F launch, int warmup = 3, int iters = 20) {
     static L2Flusher flusher;
+    flusher.keep_busy(250.0);
     for (int i = 0; i < warmup; ++i) launch();
     CUDA_CHECK_LAST_KERNEL();
 
