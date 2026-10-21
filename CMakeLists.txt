@@ -28,3 +28,5 @@ add_executable(device_query src/tools/device_query.cu)
 target_link_libraries(device_query PRIVATE common)
 
 # --- Kernels (added milestone by milestone) ----------------------------------
+add_executable(vector_add src/warmup/vector_add.cu)
+target_link_libraries(vector_add PRIVATE common)

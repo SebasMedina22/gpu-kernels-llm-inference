@@ -1,0 +1,21 @@
+CUDA runtime 13.4, driver supports 13.4
+
+Device 0: NVIDIA GeForce RTX 5050 Laptop GPU
+  Compute capability        : 12.0
+  Streaming multiprocessors : 20
+  SM clock                  : 2092 MHz
+  Warp size                 : 32
+  Max threads per block     : 1024
+  Max threads per SM        : 1536
+  Max block dims            : 1024 x 1024 x 64
+  Max grid dims             : 2147483647 x 65535 x 65535
+  Registers per block       : 65536
+  Registers per SM          : 65536
+  Shared mem per block      : 48 KB (opt-in max 99 KB)
+  Shared mem per SM         : 100 KB
+  L2 cache                  : 32768 KB
+  Global memory             : 7.93 GB
+  Memory bus width          : 128 bits
+  Memory clock              : 12001 MHz
+  Peak memory bandwidth     : ~384.0 GB/s (theoretical)
+

@@ -11,7 +11,7 @@ against a reference implementation before it is timed.
 
 ## Roadmap
 
-- [x] **1. Setup**: CMake project, repo layout, device query tool, Colab notebook
+- [x] **1. Setup**: CMake project, repo layout, device query tool, Colab notebook, `vector_add` warm-up kernel (builds and passes on the RTX 5050 Laptop with CUDA 13.4 and MSVC 2022)
 - [ ] **2. Matrix multiplication**: naive kernel, tiled shared-memory kernel, compared against cuBLAS and a NumPy CPU baseline
 - [ ] **3. Softmax**: row-wise and numerically stable, naive vs. warp-level reduction
 - [ ] **4. LayerNorm**
@@ -27,8 +27,11 @@ No benchmarks yet. Results will appear here as each milestone is completed.
 
 | Environment | GPU | Compute capability |
 |---|---|---|
-| Local (Windows 11) | NVIDIA GeForce RTX 5050 Laptop GPU, 8 GB | 12.0 (Blackwell) |
+| Local (Windows 11, CUDA 13.4) | NVIDIA GeForce RTX 5050 Laptop GPU, 8 GB, 20 SMs, ~384 GB/s theoretical | 12.0 (Blackwell) |
 | Google Colab (optional) | NVIDIA Tesla T4, 16 GB | 7.5 (Turing) |
+
+Full `device_query` output for the local GPU:
+[`docs/device_query_rtx5050_laptop.txt`](docs/device_query_rtx5050_laptop.txt).
 
 ## Repository layout
 
@@ -36,6 +39,7 @@ No benchmarks yet. Results will appear here as each milestone is completed.
 src/
   common/       shared helpers (CUDA error checking, timers)
   tools/        device_query: prints the GPU limits that shape kernel design
+  warmup/       vector_add: first kernel, verified against a CPU loop
   ...           one folder per kernel family (added per milestone)
 benchmarks/     timing harnesses
 python/         Python bindings and comparison scripts
@@ -52,6 +56,7 @@ compiler (MSVC on Windows, GCC on Linux).
 cmake -B build                       # targets the GPU in this machine
 cmake --build build --config Release
 ./build/device_query                 # Windows: build\Release\device_query.exe
+./build/vector_add                   # prints PASSED if GPU matches CPU
 ```
 
 To target a different GPU, pass its architecture, for example
