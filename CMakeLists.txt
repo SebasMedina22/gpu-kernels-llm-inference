@@ -30,3 +30,17 @@ target_link_libraries(device_query PRIVATE common)
 # --- Kernels (added milestone by milestone) ----------------------------------
 add_executable(vector_add src/warmup/vector_add.cu)
 target_link_libraries(vector_add PRIVATE common)
+
+# All kernels in one static library, shared by the benchmarks and the
+# Python bindings.
+add_library(llm_kernels STATIC
+    src/matmul/matmul_kernels.cu
+)
+target_link_libraries(llm_kernels PUBLIC common)
+set_target_properties(llm_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# Keep source line info so Nsight Compute can map metrics back to the code.
+target_compile_options(llm_kernels PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>)
+
+# --- Benchmarks --------------------------------------------------------------
+add_executable(bench_matmul benchmarks/bench_matmul.cu)
+target_link_libraries(bench_matmul PRIVATE llm_kernels CUDA::cublas)

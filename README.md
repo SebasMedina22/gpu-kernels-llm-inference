@@ -12,7 +12,7 @@ against a reference implementation before it is timed.
 ## Roadmap
 
 - [x] **1. Setup**: CMake project, repo layout, device query tool, Colab notebook, `vector_add` warm-up kernel (builds and passes on the RTX 5050 Laptop with CUDA 13.4 and MSVC 2022)
-- [ ] **2. Matrix multiplication**: naive kernel, tiled shared-memory kernel, compared against cuBLAS and a NumPy CPU baseline
+- [x] **2. Matrix multiplication**: naive (uncoalesced and coalesced), shared-memory tiled, and register-tiled kernels, verified against a CPU reference and compared with cuBLAS and a NumPy CPU baseline ([kernels](src/matmul/matmul_kernels.cu), [benchmark](benchmarks/bench_matmul.cu))
 - [ ] **3. Softmax**: row-wise and numerically stable, naive vs. warp-level reduction
 - [ ] **4. LayerNorm**
 - [ ] **5. Python bindings**: call the kernels from Python and compare with PyTorch
